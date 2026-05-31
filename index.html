@@ -86,22 +86,175 @@
       <button>Trigger a Global Error</button>
     </section>
   </main>
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
 
   <script>
+    window.TrackJS && TrackJS.install({ 
+    token: "d864e94a8a2649edaefc0a3199fca122"
+    // for more configuration options, see https://docs.trackjs.com
+    });
+
+    // STEP 4 - custom error type
+    class CalcError extends Error {
+      constructor(message, field) {
+        super(message);
+        this.name = 'CalcError';
+        this.field = field;
+      }
+    }
+
+    // STEP 5 - global error handler
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.log(
+        `[Global Error Caught]\nMessage: ${message}\nSource: ${source}\nLocation: ${lineno}:${colno}`
+      );
+      return true; 
+    };
+
+    // STEP 3 - try/catch/finally
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
       let output = document.querySelector('output');
-      let firstNum = document.querySelector('#first-num').value;
-      let secondNum = document.querySelector('#second-num').value;
-      let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try{
+        let firstNum = document.querySelector('#first-num').value;
+        let secondNum = document.querySelector('#second-num').value;
+        let operator = document.querySelector('#operator').value;
+
+        if (firstNum === '' || isNaN(firstNum)) {
+          throw new CalcError('First value is not a valid number', 'first-num');
+        }
+        if (secondNum === '' || isNaN(secondNum)) {
+          throw new CalcError('Second value is not a valid number', 'second-num');
+        }
+        if (operator === '/' && Number(secondNum) === 0) {
+          throw new CalcError('Cannot divide by 0', 'second-num');
+        }
+
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      }
+      
+      catch(err) {
+        if (err instanceof CalcError) {
+          console.error(`${err.name}`, { field: err.field, message: err.message });
+        } 
+        else {
+          console.error('Unexpected error during calculation:', err);
+        }
+      }
+
+      finally {
+        console.log('Calculation finished.');
+      }
+      
     });
+
+    // STEP 2 - for console 
+    const sampleDog = { name: 'Nyx', age: 4 };
+    const sampleUsers = [
+    { name: 'Nyx', age: 4 },
+    { name: 'Bruce', age: 5 },
+    { name: 'Sushi', age: 6 },
+    ];
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
     // Start your code here
     // You may move this JS to another file if you wish
+
+    // console log 
+    errorBtns[0].addEventListener('click', () => {
+      console.log("Hey console!");
+    });
+    
+    // console error
+    errorBtns[1].addEventListener('click', () => {
+      console.error("Failed to load profile:", {userId: 19, reason: 'Not found'});
+    });
+
+    // console count
+    errorBtns[2].addEventListener('click', () => {
+      console.count('button-click');
+    });
+
+    // console warn
+    errorBtns[3].addEventListener('click', () => {
+      console.warn("WARNING: you're too cool!");
+    });
+
+    // console assert
+    errorBtns[4].addEventListener('click', () => {
+      console.assert((1+3) == 5, "Error: this doesn't equal 5"); 
+    });
+
+    // console clear
+    errorBtns[5].addEventListener('click', () => {
+      console.clear();
+    });
+
+    // console dir
+    errorBtns[6].addEventListener('click', () => {
+      console.dir(document.querySelector('form'));
+    });
+
+    // console dirxml
+    errorBtns[7].addEventListener('click', () => {
+      console.dirxml(document.querySelector('form'));
+    });
+
+    // console group start 
+    errorBtns[8].addEventListener('click', () => {
+      console.group('Dog Details');
+      console.log('Name: ', sampleDog.name);
+      console.log('Age: ', sampleDog.age);
+      console.log('Favorite things: walks, treats, beach, car');
+    });
+
+    // console group end
+    errorBtns[9].addEventListener('click', () => {
+      console.groupEnd();
+    });
+
+    // console table
+    errorBtns[10].addEventListener('click', () => {
+      console.table(sampleDog);
+    });
+
+    // start timer
+    errorBtns[11].addEventListener('click', () => {
+      console.time('timer');
+      console.log('Timer started, click "End Timer" to stop it.');
+    });
+
+    // end timer
+    errorBtns[12].addEventListener('click', () => {
+      console.timeEnd('timer', "Time:");
+    });
+
+    // console trace
+    errorBtns[13].addEventListener('click', () => {
+      function validateDog(dog) {
+        console.trace('valideDog called');
+        return dog.age < 5;
+      }
+
+      function processRequest(dog) {
+        return validateDog(dog);
+      }
+
+      processRequest(sampleDog);
+    });
+
+     // Trigger a Global Error
+    errorBtns[14].addEventListener('click', () => {
+      setTimeout(() => {
+        functionNotDefined();
+      }, 0);
+    });
+    
+    
+
   </script>
 </body>
 
